@@ -1,7 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from pynput.mouse import Button, Controller
 import time
 import random
-
 
 mouse = Controller()
 

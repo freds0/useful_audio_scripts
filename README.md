@@ -32,3 +32,21 @@ Convert sampling rate of a folders hierarchy reading files list from metadata fi
 ```bash
 python convert_sample_rate_from_csv_with_librosa.py
 ```
+
+## Segmentation
+
+## Segment wavs
+
+Creating several file segments from one audio file.
+
+```bash
+python segmentation/segment_audio.py
+```
+
+## Change Segment wavs
+
+You can add 0.3 seconds at the end of each segment.
+
+```bash
+python segmentation/change_segments.py
+```
