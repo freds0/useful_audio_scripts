@@ -45,8 +45,23 @@ python segmentation/segment_audio.py
 
 ## Change Segment wavs
 
-You can add 0.3 seconds at the end of each segment.
+You can change the segments, for example, adding 0.3 seconds at the end of each segment.
 
 ```bash
 python segmentation/change_segments.py
 ```
+
+## Normalization
+
+Normalize audios by mean dBfs.
+
+```bash
+python normalization/normalize_audios_by_dbfs.py
+```
+
+Normalize audios by max volume using pydub.
+
+```bash
+python normalization/normalize_audios_by_max_volume.py
+```
+ 
