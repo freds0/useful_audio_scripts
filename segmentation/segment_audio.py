@@ -126,7 +126,7 @@ def build_segments(args):
   Build best segments of wav files
   '''
   # Creates destination folder
-  wav_dest_dir = os.path.join(args.base_dir, args.dest)
+  wav_dest_dir = os.path.join(args.base_dir, args.output)
   os.makedirs(wav_dest_dir, exist_ok=True)
   # Initializes variables
   max_duration, mean_duration = 0, 0
@@ -186,11 +186,11 @@ def convert_mp3_to_wav(args):
     Convert mp3 folder files to wav
     '''
     mp3files = [f for f in listdir(join(args.base_dir,args.path_mp3_files)) if isfile(join(args.base_dir,args.path_mp3_files, f))]
-    os.makedirs(join(args.base_dir,args.orig), exist_ok=True)
+    os.makedirs(join(args.base_dir,args.input), exist_ok=True)
     for mp3 in mp3files:
         sound = pydub.AudioSegment.from_mp3(join(args.base_dir,args.path_mp3_files, mp3))
         filename = mp3.split('.')[0]
-        sound.export(join(args.base_dir, args.orig, filename + '.wav'), format="wav")
+        sound.export(join(args.base_dir, args.input, filename + '.wav'), format="wav")
 
 def main():
   parser = argparse.ArgumentParser()
