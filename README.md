@@ -7,13 +7,13 @@ Some useful scripts for audio
 
 ### Audio Format
 
-Convert mp3 format audio to wav format: 
+Convert mp3 format audio to wav format:
 
 ```bash
 python conversion/convert_mp3_to_wav.py
 ```
 
-Convert wav format audio to mp3 format: 
+Convert wav format audio to mp3 format:
 
 ```bash
 python conversion/convert_wav_to_mp3.py
@@ -35,7 +35,7 @@ python convert_sample_rate_from_csv_with_librosa.py
 
 ## Segmentation
 
-## Segment wavs
+### Segment wavs
 
 Creating several file segments from one audio file.
 
@@ -43,7 +43,7 @@ Creating several file segments from one audio file.
 python segmentation/segment_audio.py
 ```
 
-## Change Segment wavs
+### Change Segment wavs
 
 You can change the segments, for example, adding 0.3 seconds at the end of each segment.
 
@@ -64,4 +64,21 @@ Normalize audios by max volume using pydub.
 ```bash
 python normalization/normalize_audios_by_max_volume.py
 ```
- 
+
+# Others
+
+### Download Audios from Youtube
+
+Download audios from youtube:
+
+```bash
+python others/download_audio_from_youtube.py --input_file links.txt --output_dir videos
+```
+
+### Download Videos from Youtube
+
+Download videos from youtube:
+
+```bash
+python others/download_video_from_youtube.py --input_file links.txt --output_dir videos
+```
