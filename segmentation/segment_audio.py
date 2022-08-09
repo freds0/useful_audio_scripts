@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+orig#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Adapted from https://gist.github.com/keithito/771cfc1a1ab69d1957914e377e65b6bd from Keith Ito: kito@kito.us
 #
@@ -115,7 +115,7 @@ def load_filenames(args):
   Given an folder, creates a wav file alphabetical order dict
   '''
   mappings = OrderedDict()
-  for filepath in glob.glob(join(args.base_dir, args.orig + "/*.wav")):
+  for filepath in glob.glob(join(args.base_dir, args.input + "/*.wav")):
     filename = filepath.split('/')[-1].split('.')[0]
     mappings[filename] = filepath
   return mappings
