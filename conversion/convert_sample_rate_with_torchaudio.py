@@ -10,6 +10,17 @@ def execute(filepath, target_sample_rate, input_folder, output_folder, force):
 
     filename = basename(filepath)
     folder = dirname(filepath)
+
+    if input_folder.startswith('/'):
+        input_folder = input_folder[1:]
+    if input_folder.endswith('/'):
+        input_folder = input_folder[:-1]
+
+    if output_folder.startswith('/'):
+        output_folder = output_folder[1:]
+    if output_folder.endswith('/'):
+        output_folder = output_folder[:-1]
+
     new_folder = folder.replace(input_folder, output_folder)
     output_filepath = join(new_folder, filename)
 
@@ -41,7 +52,7 @@ def main():
     input_folder = join(args.base_dir, args.input)
     output_folder = join(args.base_dir, args.output)
 
-    for filepath in tqdm(sorted(glob(input_folder + '/**/*.wav'))):
+    for filepath in tqdm(sorted(glob(input_folder + '/*.wav'))):
         execute(filepath, int(args.sr), input_folder, output_folder, args.force)
 
 
