@@ -3,7 +3,8 @@ from os import makedirs
 from os.path import join
 from tqdm import tqdm
 from pytube import YouTube
-
+from random import randint
+import time
 
 def execute_download(youtube_link, output_dir):
     video_id = youtube_link.replace('https://www.youtube.com/watch?v=', '')
@@ -39,6 +40,10 @@ def main():
 
     makedirs(output_folder, exist_ok=True)
     for yt_link in tqdm(content_file):
+        t = randint(30,60) 
+        print('Waiting %d seconds ...'%(t))
+        time.sleep(t) # Overcome YouTube blocking
+
         execute_download(yt_link, output_folder)
 
 

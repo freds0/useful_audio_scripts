@@ -31,7 +31,7 @@ def main():
     parser.add_argument('-o', '--output', default='output.wav')
     parser.add_argument('-g', '--gap', default=50)
     args = parser.parse_args()
-    merge_audio_files(args.input_dir, args.output_file, ing(args.gap))
+    merge_audio_files(args.input, args.output, int(args.gap))
 
 if __name__ == "__main__":
     main()
