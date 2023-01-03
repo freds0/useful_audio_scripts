@@ -1,13 +1,13 @@
 import argparse
-import glob
+from glob import glob
 import torch
 import torchaudio
 import numpy as np
 import os
 from os import makedirs
 from torchmetrics.functional.audio import signal_noise_ratio
-from os.path import join, basename
-import tqdm
+from os.path import join, basename, dirname
+from tqdm import tqdm
 
 
 torch.set_num_threads(1)
@@ -76,7 +76,6 @@ def get_snr_estimation(filepath):
 
     noise = get_noise(filepath, speech_prob_threshold=0.3)
     silence = torch.zeros(len(noise))
-    save_audio(noise, "tmp.wav")
     snr = calculate_snr(noise, silence)
     return snr
 
@@ -84,11 +83,25 @@ def get_snr_estimation(filepath):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--base_dir', default='./')
-    parser.add_argument('--input', default='sample.wav')
+    parser.add_argument('--input', default='input_dir')
+    parser.add_argument('--output_file', default='result.csv')
     args = parser.parse_args()
-    filepath = join(args.base_dir, args.input)
-    snr = get_snr_estimation(filepath)
-    print(snr)
+
+    input_dir = join(args.base_dir, args.input)
+    out_file = f = open(join(args.base_dir, args.output_file), "w")
+    separator = "|"
+    line = separator.join(["filepath", "language", "speaker_id", "snr"])
+    out_file.write(line + "\n")
+
+    for filepath in tqdm(glob(input_dir + "/**/**/*.wav")):
+        snr = get_snr_estimation(filepath)
+        folder = dirname(filepath).split("/")[-2]
+        lang = folder.replace("samples_", "")
+        speaker_id = dirname(filepath).split("/")[-1]
+        line = separator.join([basename(filepath), lang, str(speaker_id), str(int(snr))])
+        out_file.write(line + "\n")
+
+    out_file.close()
 
 
 if __name__ == "__main__":
