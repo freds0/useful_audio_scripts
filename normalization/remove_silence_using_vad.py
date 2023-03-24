@@ -1,15 +1,12 @@
 # Source: https://github.com/WeberJulian/TTS-1/blob/multilingual/TTS/bin/remove_silence_using_vad.py
 import os
 import tqdm
-import glob
+from glob import glob
 import argparse
 import pathlib
-
 import collections
 import contextlib
-import sys
 import wave
-import numpy as np
 import webrtcvad
 from tqdm.contrib.concurrent import process_map
 import multiprocessing
@@ -134,6 +131,7 @@ def vad_collector(sample_rate, frame_duration_ms,
     if voiced_frames:
         yield b''.join([f.bytes for f in voiced_frames])
 
+
 def remove_silence(filepath):
     filename = os.path.basename(filepath)
     output_path = filepath.replace(os.path.join(args.base_dir, args.input, ''),os.path.join(args.base_dir, args.output, ''))
@@ -172,8 +170,9 @@ def remove_silence(filepath):
         write_wave(output_path, audio, sample_rate)
 
 
-def execute(input_dir, output_dir, force=False, aggressiveness=1):
-    files = sorted(glob.glob(input_dir, recursive=True))
+def execute_silence_removal(input_dir, output_dir, force=False, aggressiveness=1):
+
+    files = sorted(glob(input_dir, recursive=True))
     print("> Number of files: ", len(files))
     print("> Folder: ", input_dir)
     if not force:
@@ -185,6 +184,7 @@ def execute(input_dir, output_dir, force=False, aggressiveness=1):
         process_map(remove_silence, files, max_workers=num_threads, chunksize=15)
     else:
         print("> No files Found !")
+
 
 if __name__ == "__main__":
     """
@@ -205,8 +205,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    input_dir = os.path.join(args.base_dir, args.input) + '/' + args.glob
-    output_dir = os.path.join(args.base_dir, args.output)
+    input_folder = os.path.join(args.base_dir, args.input) + '/' + args.glob
+    output_folder = os.path.join(args.base_dir, args.output)
 
 
-    execute(input_dir, output_dir, args.force, args.aggressiveness)
+    execute_silence_removal(input_folder, output_folder, args.force, args.aggressiveness)
