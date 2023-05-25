@@ -2,31 +2,32 @@
 # -*- coding: utf-8 -*-
 import argparse
 import subprocess
-import glob
+from glob import glob
 from os import makedirs
-from os.path import isfile, join, basename
+from os.path import join, basename
+from tqdm import tqdm
 
-def convert(args):
-
-    makedirs(join(args.base_dir,args.output), exist_ok=True)  
-    input_dir = join(args.base_dir,args.input)
-
-    for input_file in glob.glob(input_dir + '/*.mp3'):
-        filename = basename(input_file).split('.')[0]
-        output_file = join(args.base_dir, args.output, filename + '.wav')
-        command_line = "ffmpeg -i {} -ar {}  {}" .format(input_file, int(args.sample_rate), output_file)  
+def convert_file(input_filepath, output_filepath, target_sr = 44100, force = False):
+    command_line = "ffmpeg -i {} -ar {}  {}" .format(input_filepath, target_sr, output_filepath)  
+    if force:        
         subprocess.call(command_line, shell=True)
+    else:
+        print(command_line)
        
 
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('-b', '--base_dir', default='./')
-  parser.add_argument('-i', '--input', default='input', help='Input folder')
-  parser.add_argument('-o', '--output', default='output', help='Output folder')
-  parser.add_argument('-s', '--sample_rate', default=16000, help='Output sampling rate')
-  args = parser.parse_args()
-  convert(args)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', default='input', help='Input folder')
+    parser.add_argument('-o', '--output', default='output', help='Output folder')
+    parser.add_argument('-s', '--sr', default=44100, type=int)
+    parser.add_argument('-f', '--force', action='store_true', default=False)
+    args = parser.parse_args()
+
+    makedirs(args.output, exist_ok = True)    
+    for input_filepath in tqdm(glob(join(args.input, '*.mp3'))):
+        output_filepath = join(args.output, basename(input_filepath).replace('.mp3', '.wav'))
+        convert_file(input_filepath, output_filepath, args.sr, args.force)
 
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -1,10 +1,10 @@
 import argparse
-import glob
+from glob import glob
 from os import makedirs
 from os.path import join, exists, basename, dirname
 import librosa
 import torchaudio
-import tqdm
+from tqdm import tqdm
 import numpy as np
 
 def remove_silence(input_filepath, output_filepath, top_db = 10):
@@ -27,11 +27,11 @@ def main():
     if not(exists(output_dir)):
         makedirs(output_dir)
 
-    for input_filepath in tqdm.tqdm(sorted(glob.glob(input_dir + "/*.wav"))):
+    for input_filepath in tqdm(sorted(glob(input_dir + "/*.wav"))):
         filename = basename(input_filepath)
         output_filepath = join(output_dir, filename)
         remove_silence(input_filepath, output_filepath, int(args.top_db))
 
 
 if __name__ == "__main__":
-  main()
+    main()
