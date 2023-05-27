@@ -3,11 +3,10 @@
 # Adapted from https://gist.github.com/keithito/771cfc1a1ab69d1957914e377e65b6bd from Keith Ito: kito@kito.us
 #
 import pydub
-import shutil
 import glob
 import argparse
-from os import listdir, makedirs
-from os.path import isfile, join, basename
+from os import listdir
+from os.path import isfile, join
 from collections import OrderedDict
 import librosa
 import numpy as np
@@ -111,41 +110,43 @@ def find_segments(filename, wav, sample_rate, min_duration, max_duration, max_ga
   return result
 
 
-def load_filenames(input_dir):
+def load_filenames(args):
   '''
   Given an folder, creates a wav file alphabetical order dict
   '''
   mappings = OrderedDict()
-  input_dir = join(input_dir, "*.wav")  
-  for filepath in glob.glob(input_dir):
-    filename = basename(filepath).split('.')[0]
+  for filepath in glob.glob(join(args.base_dir, args.input + "/*.wav")):
+    filename = filepath.split('/')[-1].split('.')[0]
     mappings[filename] = filepath
   return mappings
 
 
-def build_segments(wav_input_dir, wav_dest_dir, sampling_rate, min_duration, max_duration, max_gap_duration, threshold, output_filename=None, output_filename_id=1):
+def build_segments(args):
   '''
   Build best segments of wav files
   '''
+  # Creates destination folder
+  wav_dest_dir = os.path.join(args.base_dir, args.output)
+  os.makedirs(wav_dest_dir, exist_ok=True)
   # Initializes variables
   max_duration, mean_duration = 0, 0
   all_segments = []
   total_duration = 0
-
-  filenames = load_filenames(wav_input_dir)
+  filenames = load_filenames(args)
   for i, (file_id, filename) in enumerate(filenames.items()):
     print('Loading %s: %s (%d of %d)' % (file_id, filename, i+1, len(filenames)))
-    wav, sampling_rate = librosa.load(filename, sr=None)
-    print(' -> Loaded %.1f min of audio. Splitting...' % (len(wav) / sampling_rate / 60))
+    wav, sample_rate = librosa.load(filename, sr=args.sampling_rate)
+    print(' -> Loaded %.1f min of audio. Splitting...' % (len(wav) / sample_rate / 60))
 
     # Find best segments
-    segments = find_segments(filename, wav, sampling_rate, min_duration, max_duration, max_gap_duration, threshold)
-    duration = sum((s.duration(sampling_rate) for s in segments))
+    segments = find_segments(filename, wav, sample_rate, args.min_duration, args.max_duration,
+      args.max_gap_duration, args.threshold)
+    duration = sum((s.duration(sample_rate) for s in segments))
     total_duration += duration
 
     # Create records for the segments
-    output_filename = output_filename  if output_filename else file_id
-    j = int(output_filename_id)
+    output_filename = args.output_filename  if args.output_filename else file_id
+    j = int(args.output_filename_id)
     for s in segments:
       all_segments.append(s)
       s.set_filename_and_id(filename, '%s-%04d' % (output_filename, j))
@@ -159,11 +160,11 @@ def build_segments(wav_input_dir, wav_dest_dir, sampling_rate, min_duration, max
       #segment_wav = (wav[s.start:s.end] * 32767).astype(np.int16)
       segment_wav = (wav[s.start:s.end] * 32767).astype(np.int16)
       out_path = os.path.join(wav_dest_dir, '%s.wav' % s.id)
-      #librosa.output.write_wav(out_path, segment_wav, sampling_rate)
-      write(out_path, sampling_rate, segment_wav)
+      #librosa.output.write_wav(out_path, segment_wav, sample_rate)
+      write(out_path, sample_rate, segment_wav)
 
-      duration += len(segment_wav) / sampling_rate
-      duration_segment = len(segment_wav) / sampling_rate
+      duration += len(segment_wav) / sample_rate
+      duration_segment = len(segment_wav) / sample_rate
       if duration_segment > max_duration:
         max_duration = duration_segment
 
@@ -173,7 +174,7 @@ def build_segments(wav_input_dir, wav_dest_dir, sampling_rate, min_duration, max
       len(all_segments), total_duration / 3600, total_duration / len(all_segments)))
 
   print('Writing metadata for %d segments (%.2f hours)' % (len(all_segments), total_duration / 3600))
-  with open(os.path.join(wav_dest_dir, 'segments.csv'), 'w') as f:
+  with open(os.path.join(args.base_dir, 'segments.csv'), 'w') as f:
     for s in all_segments:
       f.write('%s|%s|%d|%d\n' % (s.id, s.filename, s.start, s.end))
   print('Mean: %f' %( mean_duration ))
@@ -199,20 +200,14 @@ def main():
   parser.add_argument('--path_mp3_files', default='mp3', help='Name of mp3 folder')
   parser.add_argument('--min_duration', type=float, default=5.0, help='In seconds')
   parser.add_argument('--max_duration', type=float, default=15.0, help='In seconds')
-  parser.add_argument('--max_gap_duration', type=float, default=3.0, help='In seconds')
+  parser.add_argument('--max_gap_duration', type=float, default=5.0, help='In seconds')
   parser.add_argument('--sampling_rate', type=int, default=None, help='Sampling rate')
   parser.add_argument('--output_filename', type=str, default='', help='')
   parser.add_argument('--output_filename_id', type=int, default=1, help='Sequencial number used for id filename.')
   parser.add_argument('--threshold', type=float, default=28.0, help='The threshold (in decibels) below reference to consider as silence')
   args = parser.parse_args()
   #convert_mp3_to_wav(args)
-
-  wav_dest_dir = os.path.join(args.base_dir, args.output)
-  makedirs(wav_dest_dir, exist_ok=True)
-
-  input_folder = join(args.base_dir, args.input)
-  output_folder = join(args.base_dir, args.output)
-  build_segments(input_folder, output_folder, args.sampling_rate, args.min_duration, args.max_duration, args.max_gap_duration, args.threshold, args.output_filename, args.output_filename_id)
+  build_segments(args)
 
 
 if __name__ == "__main__":
