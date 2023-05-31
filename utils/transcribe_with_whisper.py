@@ -6,14 +6,13 @@ from tqdm import tqdm
 from glob import glob
 from os.path import basename, join
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
-from datasets import Audio, load_dataset
 import torch
 import torchaudio
 import torchaudio.transforms as T
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def load_model(language_id):
+def load_model():
 
     model_id = "openai/whisper-large-v2"
 
@@ -61,7 +60,7 @@ def main():
     parser.add_argument('--output_file', default='transcription.csv', help='Name of csv output file')      
     args = parser.parse_args()
 
-    processor, model = load_model(args.language)
+    processor, model = load_model()
     output_filepath = join(args.base_dir, args.output_file)
     ofile = open(output_filepath, 'w')
     ofile.close()
