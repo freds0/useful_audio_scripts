@@ -39,14 +39,16 @@ def transcribe(processor, model, input_filepath, output_filepath):
     ofile = open(output_filepath, 'a')
 
     filename = basename(input_filepath)
-    waveform = speech_file_to_array_fn(input_filepath, 16000)
+    #waveform = speech_file_to_array_fn(input_filepath, 16000)
     #input_values = torch.tensor(waveform, device=device)
+    waveform, sample_rate = torchaudio.load(input_filepath)
+    waveform = waveform.squeeze()
     input_features = processor(waveform, sampling_rate=16000, return_tensors="pt").input_features 
 
     with torch.no_grad():
-        predicted_ids = model.generate(input_features)
+        predicted_ids = model.generate(input_features.to(device))
 
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=False)
+    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
     line = "{}|{}".format(filename, transcription[0])
     ofile.write(line + "\n")
