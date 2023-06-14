@@ -12,13 +12,7 @@ def convert_file(input_filepath, output_filepath, target_sr,  force):
     waveform, orig_sr = torchaudio.load(input_filepath)
     original_sr = int(orig_sr)
 
-    if orig_sr < target_sr:
-            print(f"Original sr {orig_sr} is lower then target sr {target_sr}")
-
-    elif orig_sr == target_sr:
-        print(f"Original sr {orig_sr} is equal to target sr {target_sr}")
-
-    elif not force:
+    if not force:
         print(f"conv {input_filepath} {orig_sr} {output_filepath} {target_sr}")
 
     else:
@@ -37,7 +31,7 @@ def main():
     args = parser.parse_args()
 
     makedirs(args.output, exist_ok = True)    
-    for input_filepath in tqdm(glob(join(args.input, '*.wav'))):
+    for input_filepath in tqdm(glob(join(args.input, '*.mp3'))):
         output_filepath = join(args.output, basename(input_filepath))
         convert_file(input_filepath, output_filepath, args.sr, args.force)
 

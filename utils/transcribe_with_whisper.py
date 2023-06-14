@@ -18,9 +18,9 @@ def load_model():
 
     processor = WhisperProcessor.from_pretrained(model_id)
     model = WhisperForConditionalGeneration.from_pretrained(model_id)
-    model.config.forced_decoder_ids = None
+    forced_decoder_ids = processor.get_decoder_prompt_ids(language="portuguese", task="transcribe")
 
-    return processor, model.to(device)
+    return processor, model.to(device), forced_decoder_ids
 
 
 def speech_file_to_array_fn(filepath, target_sample_rate=16000):
@@ -34,7 +34,7 @@ def speech_file_to_array_fn(filepath, target_sample_rate=16000):
     return waveform
 
 
-def transcribe(processor, model, input_filepath, output_filepath):
+def transcribe(processor, model, forced_decoder_ids, input_filepath, output_filepath):
 
     ofile = open(output_filepath, 'a')
 
@@ -46,7 +46,7 @@ def transcribe(processor, model, input_filepath, output_filepath):
     input_features = processor(waveform, sampling_rate=16000, return_tensors="pt").input_features 
 
     with torch.no_grad():
-        predicted_ids = model.generate(input_features.to(device))
+        predicted_ids = model.generate(input_features.to(device), forced_decoder_ids=forced_decoder_ids)
 
     transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
@@ -62,13 +62,13 @@ def main():
     parser.add_argument('--output_file', default='transcription.csv', help='Name of csv output file')      
     args = parser.parse_args()
 
-    processor, model = load_model()
+    processor, model, forced_decoder_ids = load_model()
     output_filepath = join(args.base_dir, args.output_file)
     ofile = open(output_filepath, 'w')
     ofile.close()
 
-    for filepath in tqdm(sorted(glob(join(args.base_dir, args.input_dir) + '/*.wav'))):
-        transcribe(processor, model, filepath, output_filepath)
+    for filepath in tqdm(sorted(glob(join(args.base_dir, args.input_dir, '*.wav')))):
+        transcribe(processor, model, forced_decoder_ids, filepath, output_filepath)
 
 
 if __name__ == "__main__":
