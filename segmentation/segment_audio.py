@@ -119,13 +119,14 @@ def load_filenames(input_dir):
     return mappings
 
 
-def build_segments(input_dir, output_dir, min_duration, max_duration, max_gap_duration, threshold_db, output_filename, output_filename_id):
+def build_segments(input_dir, output_dir, min_duration, max_duration, max_gap_duration, threshold_db, args_filename, args_filename_id):
     '''
     Build best segments of wav files
     '''
     # Initializes variables
     total_duration, mean_duration_seg, max_duration_seg, min_duration_seg = 0, 0, 0, 999
     all_segments = []
+    init_filename_id = args_filename_id if args_filename_id else 1
     filenames = load_filenames(input_dir)
     for i, (file_id, filename) in enumerate(filenames.items()):
         print(f'Loading {file_id}: {filename} ({i+1} of {len(filename)})')
@@ -139,10 +140,11 @@ def build_segments(input_dir, output_dir, min_duration, max_duration, max_gap_du
         total_duration += duration
 
         # Create records for the segments
-        output_filename = output_filename if output_filename else file_id
+        output_filename = args_filename if args_filename else file_id
+        output_filename_id = init_filename_id
         for s in segments:
             all_segments.append(s)
-            s.set_filename_and_id(filename, '%s-%04d' % (output_filename, output_filename_id))
+            s.set_filename_and_id(filename, '%s-%04d' % (output_filename, args_filename_id))
             output_filename_id += 1
 
         print(' -> Segmented into %d parts (%.1f min, %.2f sec avg)' % (len(segments), duration / 60, duration / len(segments)))
