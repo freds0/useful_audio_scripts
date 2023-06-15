@@ -27,11 +27,12 @@ def speech_file_to_array_fn(filepath, target_sample_rate=16000):
 
     filename = basename(filepath)
     waveform, sample_rate = torchaudio.load(filepath)
+
     if sample_rate != target_sample_rate:
         resampler = T.Resample(sample_rate, target_sample_rate)
         waveform = resampler(waveform)
 
-    return waveform
+    return waveform.squeeze()
 
 
 def transcribe(processor, model, forced_decoder_ids, input_filepath, output_filepath):
@@ -39,10 +40,7 @@ def transcribe(processor, model, forced_decoder_ids, input_filepath, output_file
     ofile = open(output_filepath, 'a')
 
     filename = basename(input_filepath)
-    #waveform = speech_file_to_array_fn(input_filepath, 16000)
-    #input_values = torch.tensor(waveform, device=device)
-    waveform, sample_rate = torchaudio.load(input_filepath)
-    waveform = waveform.squeeze()
+    waveform = speech_file_to_array_fn(input_filepath)
     input_features = processor(waveform, sampling_rate=16000, return_tensors="pt").input_features 
 
     with torch.no_grad():
@@ -57,17 +55,17 @@ def transcribe(processor, model, forced_decoder_ids, input_filepath, output_file
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base_dir', default='./')
     parser.add_argument('--input_dir', default='wavs', help='Wavs folder')
     parser.add_argument('--output_file', default='transcription.csv', help='Name of csv output file')      
     args = parser.parse_args()
 
     processor, model, forced_decoder_ids = load_model()
-    output_filepath = join(args.base_dir, args.output_file)
+    output_filepath = args.output_file
     ofile = open(output_filepath, 'w')
     ofile.close()
 
-    for filepath in tqdm(sorted(glob(join(args.base_dir, args.input_dir, '*.wav')))):
+    #for filepath in tqdm(sorted(glob(join(args.input_dir, 'audio/**/**/*.wav')))):
+    for filepath in tqdm(sorted(glob(join(args.input_dir, '*.wav')))):
         transcribe(processor, model, forced_decoder_ids, filepath, output_filepath)
 
 
