@@ -205,11 +205,15 @@ def main():
     parser.add_argument('--threshold_db', type=float, default=28.0, help='The threshold (in decibels) below reference to consider as silence: ')
     args = parser.parse_args()
 
-    makedirs(args.output, exist_ok=True)
-
-    #convert_mp3_to_wav(args.input_mp3, args.output)
-    build_segments(args.input, args.output, args.min_duration, args.max_duration, args.max_gap_duration, args.threshold_db, args.output_filename, args.output_filename_id)
+    folders = listdir(args.input)
+    for folder in folders:
+        input_folder = join(args.input, folder)
+        output_folder = join(args.output, folder)
+        makedirs(output_folder, exist_ok=True)
+        #convert_mp3_to_wav(args.input_mp3, args.output)
+        build_segments(input_folder, output_folder, args.min_duration, args.max_duration, args.max_gap_duration, args.threshold_db, args.output_filename, arg>
 
 
 if __name__ == "__main__":
     main()
+
