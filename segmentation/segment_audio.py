@@ -12,6 +12,7 @@ from scipy.io.wavfile import write
 import librosa
 import pydub
 import numpy as np
+from tqdm import tqdm 
 
 class Segment:
     '''
@@ -113,7 +114,7 @@ def load_filenames(input_dir):
     Given an folder, creates a wav file alphabetical order dict
     '''
     mappings = OrderedDict()
-    for filepath in glob(input_dir + "/*.wav"):
+    for filepath in sorted(glob(input_dir + "/*.wav")):
         filename = basename(filepath).split('.')[0]
         mappings[filename] = filepath
     return mappings
@@ -128,7 +129,7 @@ def build_segments(input_dir, output_dir, min_duration, max_duration, max_gap_du
     all_segments = []
     init_filename_id = args_filename_id if args_filename_id else 1
     filenames = load_filenames(input_dir)
-    for i, (file_id, filename) in enumerate(filenames.items()):
+    for i, (file_id, filename) in enumerate(tqdm(filenames.items())):
         print(f'Loading {file_id}: {filename} ({i+1} of {len(filename)})')
         wav, sample_rate = librosa.load(filename, sr=None)
         audio_duration = len(wav) / sample_rate / 60
@@ -144,7 +145,7 @@ def build_segments(input_dir, output_dir, min_duration, max_duration, max_gap_du
         output_filename_id = init_filename_id
         for s in segments:
             all_segments.append(s)
-            s.set_filename_and_id(filename, '%s-%04d' % (output_filename, args_filename_id))
+            s.set_filename_and_id(filename, '%s-%04d' % (output_filename, output_filename_id))
             output_filename_id += 1
 
         print(' -> Segmented into %d parts (%.1f min, %.2f sec avg)' % (len(segments), duration / 60, duration / len(segments)))
