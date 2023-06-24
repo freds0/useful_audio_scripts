@@ -211,7 +211,7 @@ def main():
         output_folder = join(args.output, folder)
         makedirs(output_folder, exist_ok=True)
         #convert_mp3_to_wav(args.input_mp3, args.output)
-        build_segments(input_folder, output_folder, args.min_duration, args.max_duration, args.max_gap_duration, args.threshold_db, args.output_filename, arg>
+        build_segments(input_folder, output_folder, args.min_duration, args.max_duration, args.max_gap_duration, args.threshold_db, args.output_filename, args.output_filename_id)
 
 
 if __name__ == "__main__":
