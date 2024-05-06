@@ -50,7 +50,12 @@ def load_segments(filename):
     for index, row in tqdm.tqdm(df.iterrows(), total=len(df[0])):
         # Build up a linked list of segments:
         segment = Segment(df.iloc[index,2], df.iloc[index,3])
-        segment.set_filename_and_id(df.iloc[index, 1], df.iloc[index,0])
+        folder, filename = df.iloc[index, 1].split("/")
+        
+        filepath = os.path.join(folder, filename)
+        id_file = df.iloc[index,0]
+        segment.set_filename_and_id(filepath, id_file)
+        #segment.set_filename_and_id(df.iloc[index, 1], df.iloc[index,0])
         if head is None:
           head = segment
         else:
@@ -60,32 +65,33 @@ def load_segments(filename):
     return head, total
 
 
-def build_segments(args, segments, total_segments):
+def build_segments(segments, total_segments, input_dir, output_dir):
     '''
     Build best segments of wav files
     '''
     # Creates destination folder
-    wav_dest_dir = os.path.join(args.base_dir, args.dest)
-    os.makedirs(wav_dest_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Write segments to disk:
     s = segments
     i = 0
     filename = ''
     wav, sample_rate = '', 0
+
     while s != None:
       print('{} / {}'.format(i, total_segments))
       if filename != s.filename:
           filename = s.filename
-          print('Loading file ' + filename)
-          wav, sample_rate = librosa.load(filename, sr=args.sampling_rate)
+          filepath = os.path.join(input_dir, filename)
+          print('Loading file ' + filepath)
+          wav, sample_rate = librosa.load(filepath, sr=None)
       #segment_wav = (wav[s.start:s.end] * 32767).astype(np.int16)
       #
       # Adding 0.3 sec at the end of the file
       #
       #s.end += int(0.3 * sample_rate) 
       segment_wav = (wav[s.start:s.end] * 32767).astype(np.int16)
-      out_path = join(wav_dest_dir, '%s.wav' % s.id)
+      out_path = join(output_dir, '%s.wav' % s.id)
       #librosa.output.write_wav(out_path, segment_wav, sample_rate)
       write(out_path, sample_rate, segment_wav)
       #duration += len(segment_wav) / sample_rate
@@ -95,15 +101,13 @@ def build_segments(args, segments, total_segments):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--base_dir', default='./')
   parser.add_argument('--csvfile', default='segments.csv', help='Name of the csv file')
   parser.add_argument('--input', default='input', help='Name of the origin wav folder')
   parser.add_argument('--output', default='output', help='Name of wav folder')
-  parser.add_argument('--sampling_rate', type=int, default=22050, help='Sampling rate')
   args = parser.parse_args()
-  filename = join(args.base_dir, args.csvfile)
-  segments, total_segments = load_segments(filename)
-  build_segments(args, segments, total_segments)
+
+  segments, total_segments = load_segments(args.csvfile)
+  build_segments(segments, total_segments, args.input, args.output)
 
 
 if __name__ == "__main__":
