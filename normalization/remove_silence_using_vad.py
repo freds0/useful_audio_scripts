@@ -11,6 +11,7 @@ import webrtcvad
 from tqdm.contrib.concurrent import process_map
 import multiprocessing
 from itertools import chain
+from tqdm import tqdm
 
 def read_wave(path):
     """Reads a .wav file.
@@ -132,9 +133,10 @@ def vad_collector(sample_rate, frame_duration_ms,
         yield b''.join([f.bytes for f in voiced_frames])
 
 
-def remove_silence(filepath):
+def remove_silence(file_tupla):
+    filepath, output_dir = file_tupla
     filename = os.path.basename(filepath)
-    output_path = filepath.replace(os.path.join(args.base_dir, args.input, ''),os.path.join(args.base_dir, args.output, ''))
+    output_path = os.path.join(output_dir, os.path.basename(filepath))
     # ignore if the file exists 
     if os.path.exists(output_path) and not args.force:
         return False
@@ -173,6 +175,8 @@ def remove_silence(filepath):
 def execute_silence_removal(input_dir, output_dir, force=False, aggressiveness=1):
 
     files = sorted(glob(input_dir, recursive=True))
+    file_tuples = [(file_path, output_dir) for file_path in files]
+
     print("> Number of files: ", len(files))
     print("> Folder: ", input_dir)
     if not force:
@@ -181,7 +185,7 @@ def execute_silence_removal(input_dir, output_dir, force=False, aggressiveness=1
     if files:
         # create threads
         num_threads = multiprocessing.cpu_count()
-        process_map(remove_silence, files, max_workers=num_threads, chunksize=15)
+        process_map(remove_silence, file_tuples, max_workers=num_threads, chunksize=15)
     else:
         print("> No files Found !")
 
@@ -192,21 +196,19 @@ if __name__ == "__main__":
     python remove_silence.py -i=input -o=output -g=/*.wav -a=2 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base_dir', default='./')
     parser.add_argument('-i', '--input', type=str, default='input',
                         help='Dataset root dir')
     parser.add_argument('-o', '--output', type=str, default='output',
                         help='Output Dataset dir')
     parser.add_argument('--force', action='store_true', default=False)
-    parser.add_argument('-g', '--glob', type=str, default='/*.wav',
+    parser.add_argument('-g', '--glob', type=str, default='*.wav',
                         help='path in glob format for acess wavs from input folder. ex: /**/*.wav')
     parser.add_argument('-a', '--aggressiveness', type=int, default=2,
                         help='set its aggressiveness mode, which is an integer between 0 and 3. 0 is the least aggressive about filtering out non-speech, 3 is the most aggressive.')
 
     args = parser.parse_args()
 
-    input_folder = os.path.join(args.base_dir, args.input) + '/' + args.glob
-    output_folder = os.path.join(args.base_dir, args.output)
-
-
-    execute_silence_removal(input_folder, output_folder, args.force, args.aggressiveness)
+    for folder in tqdm(os.listdir(args.input)):
+        input_folder = os.path.join(args.input, folder, args.glob)
+        output_folder = os.path.join(args.output, folder)
+        execute_silence_removal(input_folder, output_folder, args.force, args.aggressiveness)
